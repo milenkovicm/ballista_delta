@@ -5,7 +5,7 @@ Since version `43.0.0` [datafusion ballista](https://github.com/apache/datafusio
 This example demonstrate extending [datafusion ballista](https://github.com/apache/datafusion-ballista) to support [delta.rs](https://delta-io.github.io/delta-rs/) read operations.
 
 > [!IMPORTANT]
-> This is just a showcase project and it is not meant to be maintained.
+> This is just a showcase project, it is not meant to be maintained.
 
 Setting up [standalone ballista](examples/standalone.rs):
 
