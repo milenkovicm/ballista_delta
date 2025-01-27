@@ -9,8 +9,8 @@ ballista = "43"
 ballista-core = { version = "43", default-features = false }
 ballista-executor = { version = "43", default-features = false }
 ballista-scheduler = { version = "43", default-features = false }
-datafusion = { version = "43" }
-datafusion-proto = { version = "43" }
+datafusion = { version = "44" }
+datafusion-proto = { version = "44" }
 deltalake = { version = "0.22.0", features = ["datafusion"] }
 log = "0.4"
 tokio = { version = "1", features = ["full"] }
