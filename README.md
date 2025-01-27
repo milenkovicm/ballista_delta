@@ -4,8 +4,20 @@ Since version `43.0.0` [datafusion ballista](https://github.com/apache/datafusio
 
 This example demonstrate extending [datafusion ballista](https://github.com/apache/datafusion-ballista) to support [delta.rs](https://delta-io.github.io/delta-rs/) read operations.
 
+>
+> [!NOTE]
+>
+> This project has been part of Datafusion Ballista show case series
+>
+> - [Ballista (Datafusion) Python Support](https://github.com/milenkovicm/ballista_python)
+> - [Datafusion Ballista Read Support For Delta Table](https://github.com/milenkovicm/ballista_delta)
+>
+
+>
 > [!IMPORTANT]
+>
 > This is just a showcase project, it is not meant to be maintained.
+>
 
 Setting up [standalone ballista](examples/standalone.rs):
 
