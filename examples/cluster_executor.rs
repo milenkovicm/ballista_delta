@@ -1,9 +1,6 @@
 use ballista_delta::{BallistaDeltaLogicalCodec, BallistaDeltaPhysicalCodec, CustomObjectStoreRegistry};
 use ballista_executor::executor_process::{start_executor_process, ExecutorProcessConfig};
-use datafusion::{
-    execution::runtime_env::{RuntimeConfig, RuntimeEnv},
-    prelude::SessionConfig,
-};
+use datafusion::{execution::runtime_env::RuntimeEnvBuilder, prelude::SessionConfig};
 use std::sync::Arc;
 ///
 /// # Custom Ballista Executor
@@ -23,10 +20,9 @@ async fn main() -> ballista_core::error::Result<()> {
         override_physical_codec: Some(Arc::new(BallistaDeltaPhysicalCodec::default())),
 
         override_runtime_producer: Some(Arc::new(|_: &SessionConfig| {
-            let runtime_config =
-                RuntimeConfig::new().with_object_store_registry(Arc::new(CustomObjectStoreRegistry::default()));
-            let runtime_env = RuntimeEnv::try_new(runtime_config)?;
-
+            let runtime_env = RuntimeEnvBuilder::new()
+                .with_object_store_registry(Arc::new(CustomObjectStoreRegistry::default()))
+                .build()?;
             Ok(Arc::new(runtime_env))
         })),
 
