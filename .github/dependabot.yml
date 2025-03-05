@@ -8,15 +8,16 @@ updates:
   - package-ecosystem: "cargo" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
     # group of dependencies to be updated together
     groups:
       # all datafusion deps should be updated together
       datafusion-dependencies:
-        # A pattern can be...
         patterns:
           - "datafusion*"
           - "datafusion-*"
+      ballista-dependencies:
+        patterns:
           - "ballista*"
           - "ballista-*"
   - package-ecosystem: "github-actions"
