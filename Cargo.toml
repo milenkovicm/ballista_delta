@@ -6,13 +6,13 @@ license = "MIT"
 
 [dependencies]
 
-ballista = "44"
-ballista-core = { version = "44", default-features = false }
-ballista-executor = { version = "44", default-features = false }
-ballista-scheduler = { version = "44", default-features = false }
-datafusion = { version = "44" }
-datafusion-proto = { version = "44" }
-deltalake = { version = "0.24", features = ["datafusion"] }
+ballista = "46"
+ballista-core = { version = "46", default-features = false }
+ballista-executor = { version = "46", default-features = false }
+ballista-scheduler = { version = "46", default-features = false }
+datafusion = { version = "46" }
+datafusion-proto = { version = "46" }
+deltalake = { version = "0.25", features = ["datafusion"] }
 log = "0.4"
 tokio = { version = "1", features = ["full"] }
 url = "2"
