@@ -84,6 +84,7 @@ impl PhysicalExtensionCodec for BallistaDeltaPhysicalCodec {
         inputs: &[Arc<dyn datafusion::physical_plan::ExecutionPlan>],
         registry: &dyn datafusion::execution::FunctionRegistry,
     ) -> Result<Arc<dyn datafusion::physical_plan::ExecutionPlan>> {
+        // NOTE: check note below
         if let Ok(r) = self.delta.try_decode(buf, inputs, registry) {
             Ok(r)
         } else {
@@ -92,6 +93,9 @@ impl PhysicalExtensionCodec for BallistaDeltaPhysicalCodec {
     }
 
     fn try_encode(&self, node: Arc<dyn datafusion::physical_plan::ExecutionPlan>, buf: &mut Vec<u8>) -> Result<()> {
+        // NOTE: this is not really correct
+        //       we need to capture which encoder actually encoded
+        //       node. using proto oneof would be appropriate
         if let Ok(r) = self.delta.try_encode(node.clone(), buf) {
             Ok(r)
         } else {
