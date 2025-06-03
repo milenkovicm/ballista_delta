@@ -7,7 +7,7 @@ use datafusion::{
 };
 use std::sync::Arc;
 //
-// docker run -ti -p 9000:9000 -p 9001:9001 minio/minio server /data --console-address ":9001"
+// docker run -ti -p 9000:9000 -p 9001:9001 minio/minio:RELEASE.2025-05-24T17-08-30Z server /data --console-address ":9001"
 //
 #[tokio::main]
 async fn main() -> Result<()> {
