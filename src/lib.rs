@@ -6,12 +6,14 @@ use datafusion::{
 };
 use datafusion_proto::physical_plan::PhysicalExtensionCodec;
 use deltalake::{
-    delta_datafusion::{DeltaLogicalCodec, DeltaPhysicalCodec},
+    delta_datafusion::{DeltaLogicalCodec, DeltaPhysicalCodec, DeltaScan},
     storage::{file::FileStorageBackend, object_store::local::LocalFileSystem},
     ObjectStore,
 };
 use std::sync::Arc;
 use url::Url;
+
+pub mod object_store;
 
 #[derive(Debug)]
 pub struct BallistaDeltaLogicalCodec {
@@ -86,6 +88,7 @@ impl PhysicalExtensionCodec for BallistaDeltaPhysicalCodec {
     ) -> Result<Arc<dyn datafusion::physical_plan::ExecutionPlan>> {
         // NOTE: check note below
         if let Ok(r) = self.delta.try_decode(buf, inputs, registry) {
+            r.as_any().downcast_ref::<DeltaScan>();
             Ok(r)
         } else {
             self.inner.try_decode(buf, inputs, registry)
@@ -125,22 +128,21 @@ impl ObjectStoreRegistry for CustomObjectStoreRegistry {
     fn get_store(&self, url: &Url) -> Result<Arc<dyn ObjectStore>> {
         let scheme = url.scheme();
 
-        //
-        // this is a bit of a hack as url which is received is a bit messed up.
-        // the one which comes from client is something like:
-        // file---Users-marko-git-ballista_delta-data-people_countries_delta_dask
-        //
-        let root = url
-            .host()
-            .map(|x| x.to_string())
-            .unwrap_or_default()
-            .to_string()
-            .replace("file--", "")
-            .replace("-", "/");
-
         match scheme {
             "" | "file" => Ok(self.local.clone()),
             "delta-rs" => {
+                //
+                // this is a bit of a hack as url which is received is a bit messed up.
+                // the one which comes from client is something like:
+                // file---Users-marko-git-ballista_delta-data-people_countries_delta_dask
+                //
+                let root = url
+                    .host()
+                    .map(|x| x.to_string())
+                    .unwrap_or_default()
+                    .to_string()
+                    .replace("file--", "")
+                    .replace("-", "/");
                 let store = FileStorageBackend::try_new(root)?;
 
                 Ok(Arc::new(store))
