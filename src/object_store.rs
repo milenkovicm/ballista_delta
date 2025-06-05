@@ -1,12 +1,7 @@
-use ballista::prelude::SessionConfigExt;
 use datafusion::common::exec_err;
 use datafusion::error::DataFusionError;
 use datafusion::error::Result;
 use datafusion::execution::object_store::ObjectStoreRegistry;
-use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
-use datafusion::execution::{SessionState, SessionStateBuilder};
-use datafusion::prelude::SessionConfig;
-use deltalake::delta_datafusion::DeltaTableFactory;
 use object_store::aws::AmazonS3Builder;
 use object_store::http::HttpBuilder;
 use object_store::local::LocalFileSystem;
@@ -14,33 +9,6 @@ use object_store::prefix::PrefixStore;
 use object_store::{ClientOptions, ObjectStore};
 use std::sync::Arc;
 use url::Url;
-
-pub fn session_config_with_s3_support() -> SessionConfig {
-    SessionConfig::new_with_ballista().with_information_schema(true)
-}
-
-pub fn runtime_env_with_s3_support(_session_config: &SessionConfig) -> Result<Arc<RuntimeEnv>> {
-    let runtime_env = RuntimeEnvBuilder::new()
-        .with_object_store_registry(Arc::new(CustomObjectStoreRegistry::default()))
-        .build()?;
-
-    Ok(Arc::new(runtime_env))
-}
-
-pub fn session_state_with_s3_support(session_config: SessionConfig) -> datafusion::common::Result<SessionState> {
-    let runtime_env = runtime_env_with_s3_support(&session_config)?;
-
-    Ok(SessionStateBuilder::new()
-        .with_runtime_env(runtime_env)
-        .with_config(session_config)
-        .with_default_features()
-        .with_table_factory("DELTATABLE".to_string(), Arc::new(DeltaTableFactory {}))
-        .build())
-}
-
-pub fn state_with_s3_support() -> datafusion::common::Result<SessionState> {
-    session_state_with_s3_support(session_config_with_s3_support())
-}
 
 #[derive(Debug)]
 pub struct CustomObjectStoreRegistry {
@@ -77,7 +45,12 @@ impl ObjectStoreRegistry for CustomObjectStoreRegistry {
 
                 Ok(Arc::new(s3store))
             }
-            "delta-rs" => {
+            "delta-rs"
+                if url
+                    .host()
+                    .map(|s| s.to_string().to_ascii_lowercase().starts_with("s3-"))
+                    .unwrap_or(false) =>
+            {
                 // we should make this more robust
                 let delta_url = url
                     .host()
@@ -94,6 +67,29 @@ impl ObjectStoreRegistry for CustomObjectStoreRegistry {
                     .build()?;
 
                 Ok(Arc::new(PrefixStore::new(s3store, url.path())))
+            }
+
+            "delta-rs"
+                if url
+                    .host()
+                    .map(|s| s.to_string().to_ascii_lowercase().starts_with("file-"))
+                    .unwrap_or(false) =>
+            {
+                //
+                // this is a bit of a hack as url which is received is a bit messed up.
+                // the one which comes from client is something like:
+                // file---Users-marko-git-ballista_delta-data-people_countries_delta_dask
+                //
+                let root = url
+                    .host()
+                    .map(|x| x.to_string())
+                    .unwrap_or_default()
+                    .to_string()
+                    .replace("file--", "")
+                    .replace("-", "/");
+                let store = deltalake::storage::file::FileStorageBackend::try_new(root)?;
+
+                Ok(Arc::new(store))
             }
 
             _ => exec_err!("get_store - store not supported, url {}", url),

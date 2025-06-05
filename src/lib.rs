@@ -1,19 +1,44 @@
+use ballista::prelude::SessionConfigExt;
 use ballista_core::serde::{BallistaLogicalExtensionCodec, BallistaPhysicalExtensionCodec};
-use datafusion::{
-    common::{exec_err, Result},
-    execution::object_store::ObjectStoreRegistry,
-    prelude::SessionContext,
-};
+use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
+use datafusion::execution::{SessionState, SessionStateBuilder};
+use datafusion::prelude::SessionConfig;
+use datafusion::{common::Result, prelude::SessionContext};
 use datafusion_proto::physical_plan::PhysicalExtensionCodec;
-use deltalake::{
-    delta_datafusion::{DeltaLogicalCodec, DeltaPhysicalCodec, DeltaScan},
-    storage::{file::FileStorageBackend, object_store::local::LocalFileSystem},
-    ObjectStore,
-};
+use deltalake::delta_datafusion::DeltaTableFactory;
+use deltalake::delta_datafusion::{DeltaLogicalCodec, DeltaPhysicalCodec, DeltaScan};
 use std::sync::Arc;
-use url::Url;
+
+use crate::object_store::CustomObjectStoreRegistry;
 
 pub mod object_store;
+
+pub fn custom_session_config() -> SessionConfig {
+    SessionConfig::new_with_ballista().with_information_schema(true)
+}
+
+pub fn custom_runtime_env(_session_config: &SessionConfig) -> Result<Arc<RuntimeEnv>> {
+    let runtime_env = RuntimeEnvBuilder::new()
+        .with_object_store_registry(Arc::new(CustomObjectStoreRegistry::default()))
+        .build()?;
+
+    Ok(Arc::new(runtime_env))
+}
+
+pub fn custom_session_state(session_config: SessionConfig) -> datafusion::common::Result<SessionState> {
+    let runtime_env = custom_runtime_env(&session_config)?;
+
+    Ok(SessionStateBuilder::new()
+        .with_runtime_env(runtime_env)
+        .with_config(session_config)
+        .with_default_features()
+        .with_table_factory("DELTA".to_string(), Arc::new(DeltaTableFactory {}))
+        .build())
+}
+
+pub fn custom_state() -> datafusion::common::Result<SessionState> {
+    custom_session_state(custom_session_config())
+}
 
 #[derive(Debug)]
 pub struct BallistaDeltaLogicalCodec {
@@ -103,52 +128,6 @@ impl PhysicalExtensionCodec for BallistaDeltaPhysicalCodec {
             Ok(r)
         } else {
             self.inner.try_encode(node, buf)
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct CustomObjectStoreRegistry {
-    local: Arc<LocalFileSystem>,
-}
-
-impl Default for CustomObjectStoreRegistry {
-    fn default() -> Self {
-        Self {
-            local: Arc::new(LocalFileSystem::new()),
-        }
-    }
-}
-
-impl ObjectStoreRegistry for CustomObjectStoreRegistry {
-    fn register_store(&self, _url: &Url, _store: Arc<dyn ObjectStore>) -> Option<Arc<dyn ObjectStore>> {
-        unimplemented!("register_store not supported")
-    }
-
-    fn get_store(&self, url: &Url) -> Result<Arc<dyn ObjectStore>> {
-        let scheme = url.scheme();
-
-        match scheme {
-            "" | "file" => Ok(self.local.clone()),
-            "delta-rs" => {
-                //
-                // this is a bit of a hack as url which is received is a bit messed up.
-                // the one which comes from client is something like:
-                // file---Users-marko-git-ballista_delta-data-people_countries_delta_dask
-                //
-                let root = url
-                    .host()
-                    .map(|x| x.to_string())
-                    .unwrap_or_default()
-                    .to_string()
-                    .replace("file--", "")
-                    .replace("-", "/");
-                let store = FileStorageBackend::try_new(root)?;
-
-                Ok(Arc::new(store))
-            }
-
-            _ => exec_err!("get_store - store not supported, url {}", url),
         }
     }
 }

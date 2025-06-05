@@ -1,5 +1,5 @@
 use ballista::prelude::{SessionConfigExt, SessionContextExt};
-use ballista_delta::object_store::session_state_with_s3_support;
+use ballista_delta::custom_session_state;
 use ballista_delta::{BallistaDeltaLogicalCodec, BallistaDeltaPhysicalCodec};
 use datafusion::{
     common::Result,
@@ -7,13 +7,13 @@ use datafusion::{
 };
 use std::sync::Arc;
 //
-// docker run -ti -p 9000:9000 -p 9001:9001 minio/minio:RELEASE.2025-05-24T17-08-30Z server /data --console-address ":9001"
+// docker run -ti --rm -e MINIO_ACCESS_KEY=MINIO -e MINIO_SECRET_KEY=MINIOSECRET -p 9000:9000 -p 9001:9001 minio/minio:RELEASE.2025-05-24T17-08-30Z server /data --console-address ":9001"
 //
 #[tokio::main]
 async fn main() -> Result<()> {
     std::env::set_var("AWS_ENDPOINT_URL", "http://localhost:9000");
-    std::env::set_var("AWS_ACCESS_KEY_ID", "cwwJtKoaYfl4fR2iW8cL");
-    std::env::set_var("AWS_SECRET_ACCESS_KEY", "orZWdeTUmmbWWoe1MKSIC3f3aDR2FVwD0lNAZigo");
+    std::env::set_var("AWS_ACCESS_KEY_ID", "MINIO");
+    std::env::set_var("AWS_SECRET_ACCESS_KEY", "MINIOSECRET");
     std::env::set_var("AWS_ALLOW_HTTP", "true");
 
     let _ = env_logger::builder()
@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
         .with_ballista_logical_extension_codec(Arc::new(BallistaDeltaLogicalCodec::default()))
         .with_ballista_physical_extension_codec(Arc::new(BallistaDeltaPhysicalCodec::default()));
 
-    let state = session_state_with_s3_support(config)?;
+    let state = custom_session_state(config)?;
     let ctx = SessionContext::remote_with_state("df://localhost:50050", state).await?;
 
     deltalake::aws::register_handlers(None);
