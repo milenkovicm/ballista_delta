@@ -7,13 +7,10 @@ use datafusion::{
 };
 use std::sync::Arc;
 
+mod common;
+
 #[tokio::test]
 async fn standalone() -> Result<()> {
-    let _ = env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .is_test(true)
-        .try_init();
-
     let config = SessionConfig::new_with_ballista()
         .with_ballista_logical_extension_codec(Arc::new(BallistaDeltaLogicalCodec::default()))
         .with_ballista_physical_extension_codec(Arc::new(BallistaDeltaPhysicalCodec::default()));
@@ -40,7 +37,6 @@ async fn standalone() -> Result<()> {
     ctx.register_table("c0", Arc::new(table)).unwrap();
 
     let result = ctx.sql("select * from c0 order by first_name").await?.collect().await?;
-
     assert_batches_eq!(expected, &result);
 
     ctx.sql("create external table c1 stored as delta location './data/people_countries_delta_dask/' ")
@@ -49,7 +45,6 @@ async fn standalone() -> Result<()> {
         .await?;
 
     let result = ctx.sql("select * from c1 order by first_name").await?.collect().await?;
-
     assert_batches_eq!(expected, &result);
 
     Ok(())
