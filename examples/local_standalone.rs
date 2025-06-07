@@ -28,8 +28,20 @@ async fn main() -> Result<()> {
     ctx.register_table("demo", Arc::new(table)).unwrap();
 
     let df = ctx.sql("select * from demo").await?;
-
     df.show().await?;
+
+    //
+    // At the moment INSERT does not work.
+    // More details at https://github.com/delta-io/delta-rs/issues/3084
+    //
+    // ```
+    // Error planning job K43wo0u: DataFusionError(NotImplemented("Insert into not implemented for this table"))
+    // ```
+    // ctx.sql("insert into demo values ('Paddy','Murphy','Europe','Ireland') ")
+    //     .await?
+    //     .show()
+    //     .await?;
+    //
 
     Ok(())
 }
