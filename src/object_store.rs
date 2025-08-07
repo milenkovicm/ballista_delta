@@ -87,7 +87,8 @@ impl ObjectStoreRegistry for CustomObjectStoreRegistry {
                     .to_string()
                     .replace("file--", "")
                     .replace("-", "/");
-                let store = deltalake::storage::file::FileStorageBackend::try_new(root)?;
+
+                let store = LocalFileSystem::new_with_prefix(root)?;
 
                 Ok(Arc::new(store))
             }

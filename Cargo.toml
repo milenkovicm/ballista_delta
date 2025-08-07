@@ -6,15 +6,15 @@ license = "MIT"
 
 [dependencies]
 
-ballista = "46"
-ballista-core = { version = "46", default-features = false }
-ballista-executor = { version = "46", default-features = false }
-ballista-scheduler = { version = "46", default-features = false }
-datafusion = { version = "46" }
-datafusion-proto = { version = "46" }
-deltalake = { version = "0.25", features = ["datafusion", "s3"] }
+ballista = "48"
+ballista-core = { version = "48", default-features = false }
+ballista-executor = { version = "48", default-features = false }
+ballista-scheduler = { version = "48", default-features = false }
+datafusion = { version = "48" }
+datafusion-proto = { version = "48" }
+deltalake = { version = "0.27", features = ["datafusion", "s3"] }
 log = "0.4"
-object_store = { version = "0.11.2", features = ["aws","http"] }
+object_store = { version = "0.12.3", features = ["aws","http"] }
 tokio = { version = "1", features = ["full"] }
 url = "2"
 
@@ -22,6 +22,7 @@ url = "2"
 env_logger = "0.11"
 ctor = { version = "0.4" }
 testcontainers-modules = { version = "0.12", features = ["minio"] }
-aws-config = { version = "1.8.3", features = ["behavior-version-latest"] }
-aws-sdk-s3 = "1.100.0"
+# for some reason aws-config was downgraded in deltatable
+aws-config = { version = "1.5", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1.101.0"
 walkdir = "2.5.0"
