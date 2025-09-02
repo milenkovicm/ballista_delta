@@ -12,7 +12,7 @@ ballista-executor = { version = "48", default-features = false }
 ballista-scheduler = { version = "48", default-features = false }
 datafusion = { version = "48" }
 datafusion-proto = { version = "48" }
-deltalake = { version = "0.27", features = ["datafusion", "s3"] }
+deltalake = { version = "0.28", features = ["datafusion", "s3"] }
 log = "0.4"
 object_store = { version = "0.12.3", features = ["aws","http"] }
 tokio = { version = "1", features = ["full"] }
