@@ -6,10 +6,10 @@ license = "MIT"
 
 [dependencies]
 
-ballista = "48"
-ballista-core = { version = "48", default-features = false }
-ballista-executor = { version = "48", default-features = false }
-ballista-scheduler = { version = "48", default-features = false }
+ballista = "49"
+ballista-core = { version = "49", default-features = false }
+ballista-executor = { version = "49", default-features = false }
+ballista-scheduler = { version = "49", default-features = false }
 datafusion = { version = "48" }
 datafusion-proto = { version = "48" }
 deltalake = { version = "0.27", features = ["datafusion", "s3"] }
