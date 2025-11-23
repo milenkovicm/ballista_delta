@@ -31,6 +31,7 @@ use datafusion::{
     prelude::{SessionConfig, SessionContext},
 };
 use std::sync::Arc;
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -42,7 +43,12 @@ async fn main() -> Result<()> {
     let state = custom_session_state(config)?;
     let ctx = SessionContext::standalone_with_state(state).await?;
 
-    let table = deltalake::open_table("./data/people_countries_delta_dask")
+    let url = Url::parse(&format!(
+        "file:{}/data/people_countries_delta_dask",
+        env!("CARGO_MANIFEST_DIR")
+    )).unwrap();
+
+    let table = deltalake::open_table(url)
         .await
         .unwrap();
 
@@ -56,7 +62,6 @@ async fn main() -> Result<()> {
         .await?;
 
     ctx.sql("select * from c").await?.show().await?;
-
 
     Ok(())
 }

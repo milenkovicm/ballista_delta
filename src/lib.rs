@@ -2,6 +2,7 @@ use ballista::prelude::SessionConfigExt;
 use ballista_core::serde::{BallistaLogicalExtensionCodec, BallistaPhysicalExtensionCodec};
 use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
 use datafusion::execution::{SessionState, SessionStateBuilder};
+use datafusion::logical_expr::LogicalPlan;
 use datafusion::prelude::SessionConfig;
 use datafusion::{common::Result, prelude::SessionContext};
 use datafusion_proto::physical_plan::PhysicalExtensionCodec;
@@ -59,7 +60,7 @@ impl datafusion_proto::logical_plan::LogicalExtensionCodec for BallistaDeltaLogi
     fn try_decode(
         &self,
         buf: &[u8],
-        inputs: &[datafusion::logical_expr::LogicalPlan],
+        inputs: &[LogicalPlan],
         ctx: &SessionContext,
     ) -> Result<datafusion::logical_expr::Extension> {
         self.inner.try_decode(buf, inputs, ctx)

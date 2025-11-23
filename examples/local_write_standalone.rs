@@ -6,6 +6,7 @@ use datafusion::{
 };
 use deltalake::DeltaOps;
 use std::sync::Arc;
+use url::Url;
 
 //
 // Write does not NOT work on ballista as insert, update, delete
@@ -28,18 +29,20 @@ async fn main() -> Result<()> {
     let state = custom_session_state(config)?;
     let ctx = SessionContext::standalone_with_state(state).await?;
 
-    let table = deltalake::open_table("./data/people_countries_delta_dask")
-        .await
-        .unwrap();
+    let url = Url::parse("./data/people_countries_delta_dask").unwrap();
+    let table = deltalake::open_table(url).await.unwrap();
 
     ctx.register_table("demo", Arc::new(table)).unwrap();
 
     let df = ctx.sql("select * from demo").await?;
     let logical_plan = df.logical_plan().clone();
 
-    let delta_ops = DeltaOps::try_from_uri("./target/people_countries_delta_dask")
-        .await
-        .unwrap();
+    let url = Url::parse(&format!(
+        "file:{}/data/people_countries_delta_dask",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    let delta_ops = DeltaOps::try_from_uri(url).await.unwrap();
 
     let write = delta_ops
         .write(vec![])

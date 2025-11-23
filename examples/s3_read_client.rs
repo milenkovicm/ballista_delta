@@ -6,6 +6,7 @@ use datafusion::{
     prelude::{SessionConfig, SessionContext},
 };
 use std::sync::Arc;
+use url::Url;
 //
 // docker run -ti --rm -e MINIO_ACCESS_KEY=MINIO -e MINIO_SECRET_KEY=MINIOSECRET -p 9000:9000 -p 9001:9001 minio/minio:RELEASE.2025-05-24T17-08-30Z server /data --console-address ":9001"
 //
@@ -37,9 +38,8 @@ async fn main() -> Result<()> {
     let df = ctx.sql("select * from p").await?;
     df.show().await?;
 
-    let table = deltalake::open_table("s3://ballista/people_countries_delta_dask/")
-        .await
-        .unwrap();
+    let url = Url::parse("s3://ballista/people_countries_delta_dask/").expect("valid path");
+    let table = deltalake::open_table(url).await.unwrap();
 
     ctx.register_table("d", Arc::new(table)).unwrap();
 

@@ -6,13 +6,13 @@ license = "MIT"
 
 [dependencies]
 
-ballista = "49"
-ballista-core = { version = "49", default-features = false }
-ballista-executor = { version = "49", default-features = false }
-ballista-scheduler = { version = "49", default-features = false }
-datafusion = { version = "49" }
-datafusion-proto = { version = "49" }
-deltalake = { version = "0.28", features = ["datafusion", "s3"] }
+ballista = "50"
+ballista-core = { version = "50", default-features = false }
+ballista-executor = { version = "50", default-features = false }
+ballista-scheduler = { version = "50", default-features = false }
+datafusion = { version = "50" }
+datafusion-proto = { version = "50" }
+deltalake = { version = "0.29", features = ["datafusion", "s3"] }
 log = "0.4"
 object_store = { version = "0.12.4", features = ["aws","http"] }
 tokio = { version = "1", features = ["full"] }

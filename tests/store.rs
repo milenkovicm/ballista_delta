@@ -8,6 +8,7 @@ use datafusion::{
 };
 use std::sync::Arc;
 use testcontainers_modules::testcontainers::runners::AsyncRunner;
+use url::Url;
 
 mod common;
 
@@ -51,10 +52,8 @@ async fn standalone() -> Result<()> {
         "| Wolfgang   | Manche    | NaN       | Germany   |",
         "+------------+-----------+-----------+-----------+",
     ];
-
-    let table = deltalake::open_table("s3://ballista/people_countries_delta_dask/")
-        .await
-        .unwrap();
+    let url = Url::parse("s3://ballista/people_countries_delta_dask/").expect("valid path");
+    let table = deltalake::open_table(url).await.unwrap();
 
     ctx.register_table("c0", Arc::new(table)).unwrap();
 

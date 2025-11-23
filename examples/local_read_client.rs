@@ -5,6 +5,7 @@ use datafusion::{
     prelude::{SessionConfig, SessionContext},
 };
 use std::sync::Arc;
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,9 +21,12 @@ async fn main() -> Result<()> {
 
     let state = custom_session_state(config)?;
 
-    let table = deltalake::open_table("./data/people_countries_delta_dask")
-        .await
-        .unwrap();
+    let url = Url::parse(&format!(
+        "file:{}/data/people_countries_delta_dask",
+        env!("CARGO_MANIFEST_DIR")
+    ))
+    .unwrap();
+    let table = deltalake::open_table(url).await.unwrap();
 
     let ctx = SessionContext::remote_with_state("df://localhost:50050", state).await?;
 
