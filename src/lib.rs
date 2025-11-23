@@ -1,5 +1,6 @@
 use ballista::prelude::SessionConfigExt;
 use ballista_core::serde::{BallistaLogicalExtensionCodec, BallistaPhysicalExtensionCodec};
+use datafusion::catalog::TableProviderFactory;
 use datafusion::execution::runtime_env::{RuntimeEnv, RuntimeEnvBuilder};
 use datafusion::execution::{SessionState, SessionStateBuilder};
 use datafusion::logical_expr::LogicalPlan;
@@ -34,6 +35,9 @@ pub fn custom_session_state(session_config: SessionConfig) -> datafusion::common
         .with_config(session_config)
         .with_default_features()
         .with_table_factory("DELTA".to_string(), Arc::new(DeltaTableFactory {}))
+        // this is experimental table provider to support
+        // insert into
+        .with_table_factory("DELTA_INSERT".to_string(), Arc::new(CustomDeltaTableFactory {}))
         .build())
 }
 
@@ -130,5 +134,41 @@ impl PhysicalExtensionCodec for BallistaDeltaPhysicalCodec {
         } else {
             self.inner.try_encode(node, buf)
         }
+    }
+}
+
+// custom table factory which uses DeltaTableProvider
+// instead of default one
+//
+// NOTE: it does not work as it is not serializable
+#[derive(Debug, Default)]
+pub struct CustomDeltaTableFactory {}
+
+#[async_trait::async_trait]
+impl TableProviderFactory for CustomDeltaTableFactory {
+    async fn create(
+        &self,
+        _state: &dyn datafusion::catalog::Session,
+        cmd: &datafusion::logical_expr::CreateExternalTable,
+    ) -> Result<Arc<dyn datafusion::catalog::TableProvider>> {
+        let table = if cmd.options.is_empty() {
+            let table_url = deltalake::ensure_table_uri(&cmd.to_owned().location)?;
+            deltalake::open_table(table_url).await?
+        } else {
+            let table_url = deltalake::ensure_table_uri(&cmd.to_owned().location)?;
+            deltalake::open_table_with_storage_options(table_url, cmd.to_owned().options).await?
+        };
+
+        let scan_config = deltalake::delta_datafusion::DeltaScanConfigBuilder::new()
+            .build(table.snapshot().unwrap().snapshot())
+            .unwrap();
+        let table_provider = deltalake::delta_datafusion::DeltaTableProvider::try_new(
+            table.snapshot().unwrap().snapshot().clone(),
+            table.log_store(),
+            scan_config,
+        )
+        .unwrap();
+
+        Ok(Arc::new(table_provider))
     }
 }

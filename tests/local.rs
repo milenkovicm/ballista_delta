@@ -56,6 +56,9 @@ async fn standalone() -> Result<()> {
     Ok(())
 }
 
+//
+// it does not work as primitives are not yet serializable
+//
 #[tokio::test]
 async fn standalone_insert() -> Result<()> {
     let config = SessionConfig::new_with_ballista()
@@ -86,14 +89,17 @@ async fn standalone_insert() -> Result<()> {
     assert_batches_eq!(expected, &result);
 
     create_target_copy();
-
-    ctx.sql("create external table c1 stored as delta location './target/data/people_countries_delta_dask/' ")
+    // delta_insert is experimental table provider
+    // which should support insert, but it does not
+    // support serialization
+    ctx.sql("create external table c1 stored as delta_insert location './target/data/people_countries_delta_dask/' ")
         .await?
         .show()
         .await?;
 
     let result = ctx.sql("INSERT into c1 select * from c0").await?.collect().await;
-    // DataFusionError(NotImplemented(\"Insert into not implemented for this table\"))"
+    // Internal(\"Can't encode non-delta tables\"))")
+
     assert!(result.is_err());
 
     Ok(())

@@ -6,6 +6,7 @@ license = "MIT"
 
 [dependencies]
 
+async-trait = "0.1"
 ballista = "50"
 ballista-core = { version = "50", default-features = false }
 ballista-executor = { version = "50", default-features = false }

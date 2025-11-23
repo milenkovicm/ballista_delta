@@ -44,6 +44,7 @@ async fn main() -> Result<()> {
     .unwrap();
     let delta_ops = DeltaOps::try_from_uri(url).await.unwrap();
 
+    #[allow(deprecated)]
     let write = delta_ops
         .write(vec![])
         .with_input_session_state(ctx.state())
