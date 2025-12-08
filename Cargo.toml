@@ -25,5 +25,5 @@ ctor = { version = "0.6" }
 testcontainers-modules = { version = "0.13", features = ["minio"] }
 # for some reason aws-config was downgraded in deltatable
 aws-config = { version = "1.5", features = ["behavior-version-latest"] }
-aws-sdk-s3 = "1.112.0"
+aws-sdk-s3 = "1.116.0"
 walkdir = "2.5.0"
