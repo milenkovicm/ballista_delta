@@ -22,7 +22,7 @@ url = "2"
 [dev-dependencies]
 env_logger = "0.11"
 ctor = { version = "0.6" }
-testcontainers-modules = { version = "0.13", features = ["minio"] }
+testcontainers-modules = { version = "0.14", features = ["minio"] }
 # for some reason aws-config was downgraded in deltatable
 aws-config = { version = "1.5", features = ["behavior-version-latest"] }
 aws-sdk-s3 = "1.116.0"
