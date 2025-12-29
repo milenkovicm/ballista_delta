@@ -15,7 +15,7 @@ datafusion = { version = "50" }
 datafusion-proto = { version = "50" }
 deltalake = { version = "0.29", features = ["datafusion", "s3"] }
 log = "0.4"
-object_store = { version = "0.12.4", features = ["aws","http"] }
+object_store = { version = "0.13.0", features = ["aws","http"] }
 tokio = { version = "1", features = ["full"] }
 url = "2"
 
